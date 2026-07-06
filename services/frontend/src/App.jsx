@@ -56,7 +56,7 @@ function App() {
         <header className="topbar">
           <div>
             <p className="eyebrow">Kubernetes operations live</p>
-            <h1>Service Control Plane</h1>
+            <h1>Production Service Control Plane</h1>
           </div>
           <button onClick={login}><ShieldCheck size={18} /> Login</button>
         </header>
