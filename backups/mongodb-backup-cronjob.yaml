@@ -1,0 +1,48 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: mongodb-backup
+  namespace: production-platform
+spec:
+  schedule: "30 2 * * *"
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: mongodump
+              image: mongo:7.0
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  mkdir -p /backup/$(date +%F)
+                  mongodump --host production-platform-production-platform-mongodb --username root --password "$MONGO_INITDB_ROOT_PASSWORD" --authenticationDatabase admin --out /backup/$(date +%F)
+              env:
+                - name: MONGO_INITDB_ROOT_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: production-platform-production-platform-secrets
+                      key: MONGO_INITDB_ROOT_PASSWORD
+              volumeMounts:
+                - name: backup
+                  mountPath: /backup
+          volumes:
+            - name: backup
+              persistentVolumeClaim:
+                claimName: mongodb-backup
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mongodb-backup
+  namespace: production-platform
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi

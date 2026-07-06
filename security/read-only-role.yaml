@@ -1,0 +1,23 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: production-platform-readonly
+  namespace: production-platform
+rules:
+  - apiGroups: ["", "apps", "networking.k8s.io", "autoscaling"]
+    resources: ["pods", "services", "deployments", "ingresses", "horizontalpodautoscalers", "events"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: production-platform-readonly
+  namespace: production-platform
+subjects:
+  - kind: Group
+    name: platform-viewers
+    apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: Role
+  name: production-platform-readonly
+  apiGroup: rbac.authorization.k8s.io

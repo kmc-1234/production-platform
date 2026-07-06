@@ -1,0 +1,25 @@
+# OS/editor
+.DS_Store
+.idea/
+.vscode/
+
+# Node
+node_modules/
+dist/
+npm-debug.log*
+
+# Go
+bin/
+*.test
+
+# Local env/secrets
+.env
+.env.*
+*.pem
+*.key
+kubeconfig*
+
+# Generated output
+coverage/
+tmp/
+*.log

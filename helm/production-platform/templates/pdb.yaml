@@ -1,0 +1,16 @@
+{{- range $name, $svc := .Values.services }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "production-platform.fullname" $ }}-{{ $name }}
+  labels:
+    {{- include "production-platform.labels" $ | nindent 4 }}
+    app.kubernetes.io/component: {{ $name }}
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      {{- include "production-platform.selectorLabels" $ | nindent 6 }}
+      app.kubernetes.io/component: {{ $name }}
+---
+{{- end }}

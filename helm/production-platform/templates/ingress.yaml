@@ -1,0 +1,66 @@
+{{- if .Values.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "production-platform.fullname" . }}
+  labels:
+    {{- include "production-platform.labels" . | nindent 4 }}
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  {{- if .Values.ingress.tls.enabled }}
+  tls:
+    - secretName: {{ .Values.ingress.tls.secretName }}
+      hosts:
+        {{- range $name, $host := .Values.ingress.hosts }}
+        - {{ $host | quote }}
+        {{- end }}
+  {{- end }}
+  rules:
+    - host: {{ .Values.ingress.hosts.frontend | quote }}
+      http:
+        paths:
+          - path: {{ .Values.services.backend.path }}
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "production-platform.fullname" . }}-backend
+                port:
+                  name: http
+          - path: {{ .Values.services.auth.path }}
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "production-platform.fullname" . }}-auth
+                port:
+                  name: http
+          - path: {{ .Values.services.notification.path }}
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "production-platform.fullname" . }}-notification
+                port:
+                  name: http
+          - path: {{ .Values.services.frontend.path }}
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "production-platform.fullname" . }}-frontend
+                port:
+                  name: http
+    {{- range $name, $svc := .Values.services }}
+    {{- if ne $name "frontend" }}
+    - host: {{ index $.Values.ingress.hosts $name | quote }}
+      http:
+        paths:
+          - path: {{ $svc.path }}
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "production-platform.fullname" $ }}-{{ $name }}
+                port:
+                  name: http
+    {{- end }}
+    {{- end }}
+{{- end }}

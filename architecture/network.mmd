@@ -1,0 +1,19 @@
+flowchart LR
+  subgraph public[Public]
+    user[Users] --> ingress[Ingress]
+  end
+  subgraph platform[production-platform namespace]
+    ingress --> frontend
+    ingress --> backend
+    ingress --> auth
+    ingress --> notification
+    frontend --> backend
+    frontend --> auth
+    backend --> mongodb
+  end
+  subgraph observability[Observability]
+    promtail --> loki
+    prometheus --> alertmanager
+    grafana --> prometheus
+    grafana --> loki
+  end

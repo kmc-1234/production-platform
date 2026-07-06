@@ -1,0 +1,20 @@
+global:
+  imagePullPolicy: IfNotPresent
+
+services:
+  frontend:
+    repository: kmc173/production-platform
+    tag: frontend-latest
+  backend:
+    repository: kmc173/production-platform
+    tag: backend-latest
+  auth:
+    repository: kmc173/production-platform
+    tag: auth-latest
+  notification:
+    repository: kmc173/production-platform
+    tag: notification-latest
+
+ingress:
+  tls:
+    enabled: false

@@ -1,0 +1,6 @@
+apiVersion: v2
+name: production-platform
+description: Production-ready Kubernetes platform for frontend, backend, auth, notification, MongoDB, ingress, autoscaling, and network controls.
+type: application
+version: 0.1.0
+appVersion: "1.0.0"

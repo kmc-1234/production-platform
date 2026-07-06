@@ -1,0 +1,8 @@
+config:
+  clients:
+    - url: http://loki-gateway/loki/api/v1/push
+  snippets:
+    pipelineStages:
+      - cri: {}
+      - labeldrop:
+          - filename

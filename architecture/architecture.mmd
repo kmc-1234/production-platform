@@ -1,0 +1,17 @@
+flowchart TD
+  Internet --> LB[Cloud Load Balancer]
+  LB --> Ingress[NGINX Ingress Controller]
+  Ingress --> Frontend[Frontend API/UI]
+  Ingress --> Auth[Auth Service]
+  Ingress --> Notify[Notification Service]
+  Frontend --> Backend[Backend Service]
+  Auth --> Backend
+  Notify --> Backend
+  Backend --> Mongo[(MongoDB)]
+  Backend --> Redis[(Redis optional)]
+  Prometheus --> Frontend
+  Prometheus --> Backend
+  Prometheus --> Auth
+  Prometheus --> Notify
+  Grafana --> Prometheus
+  Alertmanager --> Prometheus

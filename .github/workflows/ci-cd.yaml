@@ -1,0 +1,85 @@
+name: build-scan-deploy
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+env:
+  IMAGE_REPOSITORY: kmc173/production-platform
+
+jobs:
+  build-scan-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    strategy:
+      matrix:
+        service: [frontend, backend, auth, notification]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        if: github.event_name == 'push'
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build image
+        uses: docker/build-push-action@v6
+        with:
+          context: services/${{ matrix.service }}
+          push: ${{ github.event_name == 'push' }}
+          load: ${{ github.event_name == 'pull_request' }}
+          tags: |
+            ${{ env.IMAGE_REPOSITORY }}:${{ matrix.service }}-${{ github.sha }}
+            ${{ env.IMAGE_REPOSITORY }}:${{ matrix.service }}-latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Scan image with Trivy
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: ${{ env.IMAGE_REPOSITORY }}:${{ matrix.service }}-${{ github.sha }}
+          format: sarif
+          output: trivy-${{ matrix.service }}.sarif
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+
+      - name: Upload Trivy SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: trivy-${{ matrix.service }}.sarif
+
+  deploy:
+    needs: build-scan-push
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: azure/setup-helm@v4
+
+      - name: Configure kubeconfig
+        run: |
+          mkdir -p "$HOME/.kube"
+          echo "${{ secrets.KUBE_CONFIG }}" | base64 -d > "$HOME/.kube/config"
+          chmod 600 "$HOME/.kube/config"
+
+      - name: Deploy with Helm
+        run: |
+          helm upgrade --install production-platform helm/production-platform \
+            --namespace production-platform \
+            --create-namespace \
+            -f helm/production-platform/values-dockerhub.yaml \
+            --set services.frontend.tag=frontend-${{ github.sha }} \
+            --set services.backend.tag=backend-${{ github.sha }} \
+            --set services.auth.tag=auth-${{ github.sha }} \
+            --set services.notification.tag=notification-${{ github.sha }} \
+            --wait --timeout 10m
