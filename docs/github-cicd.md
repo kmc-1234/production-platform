@@ -132,13 +132,19 @@ git push
 
 GitHub Actions will:
 
-1. Build these images:
+1. Build versioned images. The version is automatic:
 
 ```text
-kmc173/production-platform:frontend-1.0.1
-kmc173/production-platform:backend-1.0.1
-kmc173/production-platform:auth-1.0.1
-kmc173/production-platform:notification-1.0.1
+1.0.<github-actions-run-number>
+```
+
+Example:
+
+```text
+kmc173/production-platform:frontend-1.0.25
+kmc173/production-platform:backend-1.0.25
+kmc173/production-platform:auth-1.0.25
+kmc173/production-platform:notification-1.0.25
 ```
 
 2. Also push latest tags:

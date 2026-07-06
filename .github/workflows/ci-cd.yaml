@@ -8,7 +8,7 @@ on:
 
 env:
   IMAGE_REPOSITORY: kmc173/production-platform
-  APP_VERSION: 1.0.1
+  APP_VERSION: 1.0.${{ github.run_number }}
 
 jobs:
   build-scan-push:
