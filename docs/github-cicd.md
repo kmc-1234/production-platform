@@ -94,6 +94,18 @@ Docker Hub -> Account Settings -> Personal access tokens -> Generate new token
 
 Use the token as `DOCKERHUB_TOKEN`.
 
+The token must have write access. If Docker Hub offers permission choices, choose a token that can read and write repositories. A read-only token will let the workflow start but the image push will fail with:
+
+```text
+401 Unauthorized: access token has insufficient scopes
+```
+
+Also confirm the token belongs to Docker Hub user `kmc173`, because the workflow pushes to:
+
+```text
+kmc173/production-platform
+```
+
 ### KUBE_CONFIG
 
 This is needed only for automatic Kubernetes deploy.

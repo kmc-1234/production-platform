@@ -25,6 +25,18 @@ docker login
 
 Use your Docker Hub username and access token/password.
 
+For GitHub Actions, the Docker Hub token must have write permission for:
+
+```text
+kmc173/production-platform
+```
+
+If the token is read-only, the workflow will fail during push with:
+
+```text
+401 Unauthorized: access token has insufficient scopes
+```
+
 ## 2. Build and push images
 
 From the project root:
