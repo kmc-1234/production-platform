@@ -9,11 +9,13 @@ kmc173/production-platform
 Because this is one Docker repository, this project stores each service as a different image tag:
 
 ```text
-kmc173/production-platform:frontend-latest
-kmc173/production-platform:backend-latest
-kmc173/production-platform:auth-latest
-kmc173/production-platform:notification-latest
+kmc173/production-platform:frontend-1.0.1
+kmc173/production-platform:backend-1.0.1
+kmc173/production-platform:auth-1.0.1
+kmc173/production-platform:notification-1.0.1
 ```
+
+The scripts also push `*-latest` tags for convenience.
 
 ## 1. Login to Docker Hub
 
@@ -35,21 +37,21 @@ cd "/Users/kammamadan/Production Kubernetes Platform"
 To push a custom version:
 
 ```bash
-VERSION=v1 ./scripts/push-dockerhub.sh
+VERSION=1.0.2 ./scripts/push-dockerhub.sh
 ```
 
 That creates:
 
 ```text
-kmc173/production-platform:frontend-v1
-kmc173/production-platform:backend-v1
-kmc173/production-platform:auth-v1
-kmc173/production-platform:notification-v1
+kmc173/production-platform:frontend-1.0.2
+kmc173/production-platform:backend-1.0.2
+kmc173/production-platform:auth-1.0.2
+kmc173/production-platform:notification-1.0.2
 ```
 
 ## 3. Deploy from Docker Hub
 
-Deploy latest tags:
+Deploy default version `1.0.1`:
 
 ```bash
 ./scripts/deploy-dockerhub.sh
@@ -58,7 +60,7 @@ Deploy latest tags:
 Deploy a custom version:
 
 ```bash
-VERSION=v1 ./scripts/deploy-dockerhub.sh
+VERSION=1.0.2 ./scripts/deploy-dockerhub.sh
 ```
 
 ## GitHub Actions secrets

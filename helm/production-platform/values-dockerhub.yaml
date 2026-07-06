@@ -4,16 +4,16 @@ global:
 services:
   frontend:
     repository: kmc173/production-platform
-    tag: frontend-latest
+    tag: frontend-1.0.1
   backend:
     repository: kmc173/production-platform
-    tag: backend-latest
+    tag: backend-1.0.1
   auth:
     repository: kmc173/production-platform
-    tag: auth-latest
+    tag: auth-1.0.1
   notification:
     repository: kmc173/production-platform
-    tag: notification-latest
+    tag: notification-1.0.1
 
 ingress:
   tls:

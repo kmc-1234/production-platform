@@ -123,10 +123,10 @@ GitHub Actions will:
 1. Build these images:
 
 ```text
-kmc173/production-platform:frontend-<commit-sha>
-kmc173/production-platform:backend-<commit-sha>
-kmc173/production-platform:auth-<commit-sha>
-kmc173/production-platform:notification-<commit-sha>
+kmc173/production-platform:frontend-1.0.1
+kmc173/production-platform:backend-1.0.1
+kmc173/production-platform:auth-1.0.1
+kmc173/production-platform:notification-1.0.1
 ```
 
 2. Also push latest tags:

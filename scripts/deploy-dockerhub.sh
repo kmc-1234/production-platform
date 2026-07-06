@@ -3,7 +3,7 @@ set -euo pipefail
 
 NAMESPACE="${NAMESPACE:-production-platform}"
 RELEASE="${RELEASE:-production-platform}"
-VERSION="${VERSION:-latest}"
+VERSION="${VERSION:-1.0.1}"
 
 helm upgrade --install "${RELEASE}" helm/production-platform \
   --namespace "${NAMESPACE}" \

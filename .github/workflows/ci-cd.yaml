@@ -8,6 +8,7 @@ on:
 
 env:
   IMAGE_REPOSITORY: kmc173/production-platform
+  APP_VERSION: 1.0.1
 
 jobs:
   build-scan-push:
@@ -49,7 +50,7 @@ jobs:
           push: ${{ github.event_name == 'push' && steps.dockerhub.outputs.push_enabled == 'true' }}
           load: ${{ github.event_name == 'pull_request' || steps.dockerhub.outputs.push_enabled != 'true' }}
           tags: |
-            ${{ env.IMAGE_REPOSITORY }}:${{ matrix.service }}-${{ github.sha }}
+            ${{ env.IMAGE_REPOSITORY }}:${{ matrix.service }}-${{ env.APP_VERSION }}
             ${{ env.IMAGE_REPOSITORY }}:${{ matrix.service }}-latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -57,7 +58,7 @@ jobs:
       - name: Scan image with Trivy
         uses: aquasecurity/trivy-action@v0.36.0
         with:
-          image-ref: ${{ env.IMAGE_REPOSITORY }}:${{ matrix.service }}-${{ github.sha }}
+          image-ref: ${{ env.IMAGE_REPOSITORY }}:${{ matrix.service }}-${{ env.APP_VERSION }}
           format: sarif
           output: trivy-${{ matrix.service }}.sarif
           severity: CRITICAL,HIGH
@@ -109,8 +110,8 @@ jobs:
             --namespace production-platform \
             --create-namespace \
             -f helm/production-platform/values-dockerhub.yaml \
-            --set services.frontend.tag=frontend-${{ github.sha }} \
-            --set services.backend.tag=backend-${{ github.sha }} \
-            --set services.auth.tag=auth-${{ github.sha }} \
-            --set services.notification.tag=notification-${{ github.sha }} \
+            --set services.frontend.tag=frontend-${{ env.APP_VERSION }} \
+            --set services.backend.tag=backend-${{ env.APP_VERSION }} \
+            --set services.auth.tag=auth-${{ env.APP_VERSION }} \
+            --set services.notification.tag=notification-${{ env.APP_VERSION }} \
             --wait --timeout 10m
