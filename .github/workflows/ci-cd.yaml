@@ -23,8 +23,21 @@ jobs:
 
       - uses: docker/setup-buildx-action@v3
 
+      - name: Check Docker Hub secrets
+        id: dockerhub
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: |
+          if [ -n "$DOCKERHUB_USERNAME" ] && [ -n "$DOCKERHUB_TOKEN" ]; then
+            echo "push_enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "push_enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::DOCKERHUB_USERNAME or DOCKERHUB_TOKEN is missing. Images will be built and scanned locally, but not pushed."
+          fi
+
       - uses: docker/login-action@v3
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' && steps.dockerhub.outputs.push_enabled == 'true'
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
@@ -33,8 +46,8 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: services/${{ matrix.service }}
-          push: ${{ github.event_name == 'push' }}
-          load: ${{ github.event_name == 'pull_request' }}
+          push: ${{ github.event_name == 'push' && steps.dockerhub.outputs.push_enabled == 'true' }}
+          load: ${{ github.event_name == 'pull_request' || steps.dockerhub.outputs.push_enabled != 'true' }}
           tags: |
             ${{ env.IMAGE_REPOSITORY }}:${{ matrix.service }}-${{ github.sha }}
             ${{ env.IMAGE_REPOSITORY }}:${{ matrix.service }}-latest
@@ -51,8 +64,8 @@ jobs:
           ignore-unfixed: true
 
       - name: Upload Trivy SARIF
-        uses: github/codeql-action/upload-sarif@v3
-        if: always()
+        uses: github/codeql-action/upload-sarif@v4
+        if: always() && hashFiles(format('trivy-{0}.sarif', matrix.service)) != ''
         with:
           sarif_file: trivy-${{ matrix.service }}.sarif
 
@@ -62,17 +75,35 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     steps:
+      - name: Check deploy secrets
+        id: deploy-secrets
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+          KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
+        run: |
+          if [ -n "$DOCKERHUB_USERNAME" ] && [ -n "$DOCKERHUB_TOKEN" ] && [ -n "$KUBE_CONFIG" ]; then
+            echo "deploy_enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "deploy_enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::DOCKERHUB_USERNAME, DOCKERHUB_TOKEN, or KUBE_CONFIG is missing. Skipping Kubernetes deploy."
+          fi
+
       - uses: actions/checkout@v4
+        if: steps.deploy-secrets.outputs.deploy_enabled == 'true'
 
       - uses: azure/setup-helm@v4
+        if: steps.deploy-secrets.outputs.deploy_enabled == 'true'
 
       - name: Configure kubeconfig
+        if: steps.deploy-secrets.outputs.deploy_enabled == 'true'
         run: |
           mkdir -p "$HOME/.kube"
           echo "${{ secrets.KUBE_CONFIG }}" | base64 -d > "$HOME/.kube/config"
           chmod 600 "$HOME/.kube/config"
 
       - name: Deploy with Helm
+        if: steps.deploy-secrets.outputs.deploy_enabled == 'true'
         run: |
           helm upgrade --install production-platform helm/production-platform \
             --namespace production-platform \
